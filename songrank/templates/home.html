@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block content %}
+<hr/>
+<div id="lyrics"></div>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h5>Your Rankings</h5>
+            {% if request.user.rankings.exists %}
+            <table class="table table-striped" id="user-table">
+                <tbody>
+                    {% for user_ranking in request.user.active_rankings %}
+                    <tr class="user-rank-row" data-rank-id="{{ user_ranking.pk }}">
+                        <td>{{ user_ranking.song }}</td>
+                        <td><a href="{{ user_ranking.song.demo }}" class="btn btn-sm btn-outline-primary" target="_blank">Demo</a></td>
+                        <td><a href="#" class="lyric-btn btn btn-sm btn-outline-secondary" data-song-id="{{ user_ranking.song.pk }}">Lyrics</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No songs!</p>
+            {% endif %}
+        </div>
+        <div class="col">
+            <h5>Aggregate Rankings</h5>
+            {% if aggregate %}
+            <table class="table table-striped">
+                <tr>
+                    <th>Song</th>
+                    <th>Total</th>
+                    <th>Rankings</th>
+                </tr>
+                {% for song in aggregate %}
+                <tr>
+                    <td>{{ song }}</td>
+                    <td>{{ song.aggregate_rank }}</td>
+                    <td>
+                        {% for ranking in song.rankings.all %}
+                        {{ ranking.member.initials }} ({{ ranking.ranking }}){% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+            {% else %}
+            <p class="text-muted">No songs!<p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    $(function(){
+       $(".lyric-btn").click(function(e){
+           var song_id = $(this).attr("data-song-id");
+           $("#lyrics").load("/lyrics/"+song_id+"/").fadeIn();
+           return false;
+       });
+       
+       $('#user-table tbody').sortable({
+           update: function(e, ui) {
+               var user_rankings = []
+               $('#user-table tr').each(function(i){
+                   var rank_id = $(this).attr("data-rank-id");
+                   user_rankings.push(rank_id)
+               });
+               var ranking_str = user_rankings.join(",");
+               $.get("/rank?ranks="+ranking_str);
+           }
+       });
+    });
+    
+</script>
+{% endblock scripts %}
