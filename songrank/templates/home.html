@@ -24,29 +24,36 @@
             {% endif %}
         </div>
         <div class="col">
-            <h5>Aggregate Rankings</h5>
-            {% if aggregate %}
-            <table class="table table-striped">
-                <tr>
-                    <th>Song</th>
-                    <th>Total</th>
-                    <th>Rankings</th>
-                </tr>
-                {% for song in aggregate %}
-                <tr>
-                    <td>{{ song }}</td>
-                    <td>{{ song.aggregate_rank }}</td>
-                    <td>
-                        {% for ranking in song.rankings.all %}
-                        {{ ranking.member.initials }} ({{ ranking.ranking }}){% if not forloop.last %},{% endif %}
-                        {% endfor %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-            {% else %}
-            <p class="text-muted">No songs!<p>
-            {% endif %}
+            <p>
+                <a href="#" id="show-agg-btn" class="btn btn-outline-primary">Show Aggregates</a>
+                <a href="#" id="refresh-btn" class="btn btn-outline-success">Refresh</a>
+            </p>
+            <div class="hidden" id="agg-panel">
+                <hr/>
+                <h5>Aggregate Rankings</h5>
+                {% if aggregate %}
+                <table class="table table-striped">
+                    <tr>
+                        <th>Song</th>
+                        <th>Total</th>
+                        <th>Rankings</th>
+                    </tr>
+                    {% for song in aggregate %}
+                    <tr>
+                        <td>{{ song }}</td>
+                        <td>{{ song.aggregate_rank }}</td>
+                        <td>
+                            {% for ranking in song.rankings.all %}
+                            {{ ranking.member.initials }} ({{ ranking.ranking }}){% if not forloop.last %},{% endif %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+                {% else %}
+                <p class="text-muted">No songs!<p>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
@@ -71,6 +78,23 @@
                var ranking_str = user_rankings.join(",");
                $.get("/rank?ranks="+ranking_str);
            }
+       });
+       
+       $("#show-agg-btn").click(function(e){
+           if ($('#agg-panel').is(':hidden')) {
+               $('#agg-panel').fadeIn();
+               $('#show-agg-btn').text('Hide Aggregates');
+           }
+           else {
+               $('#agg-panel').fadeOut();
+               $('#show-agg-btn').text('Show Aggregates');
+           }
+           return false;
+       });
+       
+       $('#refresh-btn').click(function(e){
+           location.reload();
+           return false;
        });
     });
     
