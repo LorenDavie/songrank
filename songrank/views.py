@@ -2,9 +2,9 @@
 Views for Songrank.
 """
 
-from songrank.models import Song
+from songrank.models import Song, Pipeline
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 
 @login_required(login_url='/admin/login/')
@@ -41,3 +41,28 @@ def rank(request):
         rank_value -= 1
     
     return HttpResponse('OK')
+
+@login_required(login_url="/admin/login/")
+def pipelines(request):
+    """ 
+    Shows release pipelines.
+    """
+    pipelines = Pipeline.objects.filter(done=False)
+    return render(request, "pipelines.html", context={"pipelines":pipelines})
+
+@login_required(login_url="/admin/login/")
+def complete_phase(request, pipeline_id, phase_id):
+    """ 
+    Completes the pipelne phase.
+    """
+    pipeline = Pipeline.objects.get(pk=pipeline_id)
+    phase = pipeline.phases.get(pk=phase_id)
+    phase.done = True
+    phase.save()
+    
+    # if all phases are done, the pipeline is done
+    if not pipeline.phases.filter(done=False).exists():
+        pipeline.done = True
+        pipeline.save()
+    
+    return HttpResponseRedirect("/pipelines/")

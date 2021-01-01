@@ -37,6 +37,7 @@
                         <th>Song</th>
                         <th>Average</th>
                         <th>Rankings</th>
+                        <th>Spread</th>
                     </tr>
                     {% for song in aggregate %}
                     <tr>
@@ -46,6 +47,9 @@
                             {% for ranking in song.rankings.all %}
                             {{ ranking.member.initials }} ({{ ranking.ranking }}){% if not forloop.last %},{% endif %}
                             {% endfor %}
+                        </td>
+                        <td>
+                            {{ song.spread }}
                         </td>
                     </tr>
                     {% endfor %}

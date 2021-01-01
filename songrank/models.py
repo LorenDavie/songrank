@@ -3,6 +3,7 @@ Models for songrank.
 """
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from datetime import timedelta, date
 
 
 class Member(AbstractUser):
@@ -77,6 +78,14 @@ class Song(models.Model):
         """
         agg_rank = self.aggregate_rank()
         return agg_rank / self.rankings.count()
+    
+    def spread(self):
+        """ 
+        Shows the difference between the top and bottom ranking for this song.
+        """
+        top_rank = self.rankings.aggregate(models.Max("ranking"))["ranking__max"]
+        bottom_rank = self.rankings.aggregate(models.Min("ranking"))["ranking__min"]
+        return top_rank - bottom_rank
 
 
 class Ranking(models.Model):
@@ -94,4 +103,99 @@ class Ranking(models.Model):
     class Meta:
         unique_together = (("member", "song"),)
         ordering = ["-ranking"]
+
+# =============
+# = Pipelines =
+# =============
+class PipelineTemplate(models.Model):
+    """ 
+    A template for a pipeline.
+    """
+    name = models.CharField(unique=True, max_length=100)
+    
+    def __str__(self):
+        return self.name
+
+class PhaseDescriptor(models.Model):
+    """ 
+    A descriptor for a phase in a pipeline.
+    """
+    template = models.ForeignKey(PipelineTemplate, related_name="phase_descriptors", on_delete=models.CASCADE)
+    name = models.CharField(blank=True, max_length=100)
+    order = models.IntegerField()
+    depends_on = models.ForeignKey("self", null=True, blank=True, related_name="downstream_phase_descriptors", on_delete=models.SET_NULL)
+    buffer_days = models.IntegerField(default=1)
+    
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ["order"]
+        unique_together = (("template", "name"),("template", "order"))
+
+class Pipeline(models.Model):
+    """ 
+    A release pipeline.
+    """
+    template = models.ForeignKey(PipelineTemplate, related_name="pipelines", on_delete=models.CASCADE)
+    song = models.ForeignKey(Song, null=True, blank=True, on_delete=models.SET_NULL)
+    name = models.CharField(null=True, blank=True, max_length=100)
+    done = models.BooleanField(default=False)
+    baseline = models.DateField() # actually the release date - work backwards from here
+    
+    def __str__(self):
+        if self.song and self.name:
+            return f"{self.song} ({self.name})"
+        elif self.song:
+            return str(self.song)
+        else:
+            return self.name
+    
+    def save(self, *args, **kwargs):
+        """ 
+        Automatically populate phases if they don't yet exist.
+        """
+        value = super().save(*args, **kwargs)
+        
+        if not self.phases.all().exists():
+            subsequent_phase = None
+            # loop through phase descriptors backwards
+            for descriptor in self.template.phase_descriptors.all().order_by("-order"):
+                phase = Phase.objects.create(pipeline=self, descriptor=descriptor)
+                if subsequent_phase:
+                    phase.due = subsequent_phase.due - timedelta(days=subsequent_phase.descriptor.buffer_days)
+                else:
+                    phase.due = self.baseline
+                phase.save()
+                subsequent_phase = phase
+        
+        return value
+    
+    class Meta:
+        unique_together = (("song", "name"),)
+
+class Phase(models.Model):
+    """ 
+    A phase in a pipeline.
+    """
+    pipeline = models.ForeignKey(Pipeline, related_name="phases", on_delete=models.CASCADE)
+    descriptor = models.ForeignKey(PhaseDescriptor, related_name="phases", on_delete=models.CASCADE)
+    due = models.DateField(null=True, blank=True)
+    done = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.descriptor} : {self.due} ({self.pipeline})"
+    
+    def is_late(self):
+        """ 
+        Indicates if this phase is late.
+        """
+        if self.done:
+            return False
+        
+        return self.due < date.today()
+    
+    class Meta:
+        unique_together = (("pipeline", "descriptor"),)
+        ordering = ["due"]
 

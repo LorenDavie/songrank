@@ -21,5 +21,7 @@ urlpatterns = [
     path("", views.home),
     path("lyrics/<int:song_id>/", views.lyrics),
     path("rank/", views.rank),
+    path("pipelines/", views.pipelines),
+    path("pipelines/<int:pipeline_id>/<int:phase_id>/done/", views.complete_phase),
     path('admin/', admin.site.urls),
 ]

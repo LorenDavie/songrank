@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+<hr/>
+<div class="container">
+    {% if pipelines %}
+    {% for pipeline in pipelines %}
+    <div class="row">
+        <div class="col-sm">
+            <h4>{{ pipeline }}</h4>
+            <h6 class="text-muted">{{ pipeline.template }}</h6>
+            <h6 class="text-muted">{{ pipeline.baseline }}</h6>
+        </div>
+        {% for phase in pipeline.phases.all %}
+        <div class="col-sm">
+            <div class="card {% if phase.done %}text-white bg-success{% else %}{% if phase.is_late %}text-white bg-danger{% endif %}{% endif %}">
+              <div class="card-body">
+                  <h5 class="card-title">{{ phase.descriptor.name }}</h5>
+                  {% if not card.done %}
+                  <h6 class="card-subtitle mb-2 {% if phase.is_late %}text-white{% else %}text-muted{% endif %}">{{ phase.due }}</h6>
+                  <a href="/pipelines/{{ pipeline.pk }}/{{ phase.pk }}/done/" class="btn btn-sm {% if phase.is_late %}text-white btn-outline-light{% else %}btn-outline-success{% endif %}">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-check" viewBox="0 0 16 16">
+                        <path d="M10.854 7.146a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 1 1 .708-.708L7.5 9.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                        <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                      </svg>
+                  </a>
+                  {% endif %}
+              </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endfor %}
+    {% else %}
+    <p class="text-muted">No Pipelines</a>
+    {% endif %}
+</div>
+{% endblock content %}
