@@ -35,6 +35,7 @@
                 <table class="table table-striped">
                     <tr>
                         <th>Song</th>
+                        <th>By</th>
                         <th>Average</th>
                         <th>Rankings</th>
                         <th>Spread</th>
@@ -42,6 +43,11 @@
                     {% for song in aggregate %}
                     <tr>
                         <td>{{ song }}</td>
+                        <td>
+                            {% for writer in song.writers.all %}
+                            {{ writer.initials }}{% if not forloop.last %},{% endif %}
+                            {% endfor %}
+                        </td>
                         <td>{{ song.average_rank|floatformat }}</td>
                         <td>
                             {% for ranking in song.rankings.all %}
