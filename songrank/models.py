@@ -76,6 +76,10 @@ class Song(models.Model):
         """ 
         Gets the average ranking for the song.
         """
+        if not self.rankings.all().exists():
+            # avoid divide by zero
+            return 0
+        
         agg_rank = self.aggregate_rank()
         return agg_rank / self.rankings.count()
     
