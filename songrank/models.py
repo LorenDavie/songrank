@@ -40,6 +40,14 @@ class SongManager(models.Manager):
         songs = [song for song in self.filter(accepted=False)]
         songs.sort(key=lambda song: song.aggregate_rank(), reverse=True)
         return songs
+    
+    def average_rankings(self):
+        """ 
+        Gets non-accepted songs by average rank.
+        """
+        songs = [song for song in self.filter(accepted=False)]
+        songs.sort(key=lambda song: song.average_rank(), reverse=True)
+        return songs
 
 class Song(models.Model):
     """ 
@@ -62,6 +70,13 @@ class Song(models.Model):
         Gets the total rank value for this song.
         """
         return self.rankings.aggregate(models.Sum("ranking"))["ranking__sum"]
+    
+    def average_rank(self):
+        """ 
+        Gets the average ranking for the song.
+        """
+        agg_rank = self.aggregate_rank()
+        return agg_rank / self.rankings.count()
 
 
 class Ranking(models.Model):

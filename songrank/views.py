@@ -13,7 +13,7 @@ def home(request):
     Home page.
     """
     request.user.ensure_rankings()
-    aggregate = Song.objects.aggregate_rankings()
+    aggregate = Song.objects.average_rankings()
     return render(request, "home.html", context={'aggregate':aggregate})
 
 @login_required(login_url='/admin/login/')
