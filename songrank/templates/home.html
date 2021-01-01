@@ -41,7 +41,7 @@
                     {% for song in aggregate %}
                     <tr>
                         <td>{{ song }}</td>
-                        <td>{{ song.average_rank }}</td>
+                        <td>{{ song.average_rank|floatformat }}</td>
                         <td>
                             {% for ranking in song.rankings.all %}
                             {{ ranking.member.initials }} ({{ ranking.ranking }}){% if not forloop.last %},{% endif %}
