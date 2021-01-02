@@ -41,7 +41,7 @@
                         <th>Spread</th>
                     </tr>
                     {% for song in aggregate %}
-                    <tr>
+                    <tr {% if song.ranking_incomplete %}class="text-muted"{% endif %}>
                         <td>{{ song }}</td>
                         <td>
                             {% for writer in song.writers.all %}

@@ -90,6 +90,12 @@ class Song(models.Model):
         top_rank = self.rankings.aggregate(models.Max("ranking"))["ranking__max"]
         bottom_rank = self.rankings.aggregate(models.Min("ranking"))["ranking__min"]
         return top_rank - bottom_rank
+    
+    def ranking_incomplete(self):
+        """ 
+        Returns true if less than all members have ranked the song.
+        """
+        return self.rankings.all().count() < Member.objects.all().count()
 
 
 class Ranking(models.Model):
