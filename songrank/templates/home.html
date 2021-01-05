@@ -90,6 +90,8 @@
            }
        });
        
+       $('#user-table tbody').disableSelection();
+       
        $("#show-agg-btn").click(function(e){
            if ($('#agg-panel').is(':hidden')) {
                $('#agg-panel').fadeIn();
