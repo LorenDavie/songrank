@@ -101,7 +101,21 @@ class Song(models.Model):
         """
         top_rank = self.rankings.aggregate(models.Max("ranking"))["ranking__max"]
         bottom_rank = self.rankings.aggregate(models.Min("ranking"))["ranking__min"]
-        return top_rank - bottom_rank
+        difference = top_rank - bottom_rank
+        
+        max_spread = Song.objects.filter(accepted=False).count() - 1
+        
+        if max_spread > 0:
+            return float(difference) / float(max_spread)
+        else:
+            return 0.0
+    
+    def spread_percent(self):
+        """ 
+        Gets spread as a percentage.
+        """
+        spr = self.spread() * 100.0
+        return f"{spr:.0f}"
     
     def ranking_incomplete(self):
         """ 
