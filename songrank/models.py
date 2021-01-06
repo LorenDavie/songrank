@@ -23,6 +23,18 @@ class Member(AbstractUser):
         """
         return self.rankings.filter(song__accepted=False)
     
+    def rebalance_rankings(self):
+        """ 
+        Rebalances ranking scores after songs are accepted.
+        """
+        self.ensure_rankings()
+        rankings = self.active_rankings()
+        score = rankings.count()
+        for ranking in rankings:
+            ranking.ranking = score
+            ranking.save()
+            score -= 1
+    
     @property
     def initials(self):
         if self.first_name and self.last_name:
