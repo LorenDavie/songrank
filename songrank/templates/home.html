@@ -43,6 +43,7 @@
                         <th>By</th>
                         <th>Average</th>
                         <th>Rankings</th>
+                        <th>Endorsement</th>
                         <th>Spread</th>
                     </tr>
                     {% for song in aggregate %}
@@ -58,6 +59,9 @@
                             {% for ranking in song.rankings.all %}
                             {{ ranking.member.initials }} ({{ ranking.ranking }}){% if not forloop.last %},{% endif %}
                             {% endfor %}
+                        </td>
+                        <td>
+                            {{ song.endorsement_percent }}%
                         </td>
                         <td>
                             {{ song.spread_percent }}%

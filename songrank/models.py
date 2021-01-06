@@ -122,6 +122,20 @@ class Song(models.Model):
         Returns true if less than all members have ranked the song.
         """
         return self.rankings.all().count() < Member.objects.all().count()
+    
+    def endorsement(self):
+        """ 
+        The relative level of endoresement for the song.
+        """
+        max_endorsement = Song.objects.filter(accepted=False).count()
+        return self.average_rank() / float(max_endorsement)
+    
+    def endorsement_percent(self):
+        """ 
+        Relative endorsement as a percentage.
+        """
+        endorsement = self.endorsement() * 100.0
+        return f"{endorsement:.0f}"
 
 
 class Ranking(models.Model):
