@@ -12,5 +12,18 @@ admin.site.register(models.Ranking)
 
 admin.site.register(models.PipelineTemplate)
 admin.site.register(models.PhaseDescriptor)
-admin.site.register(models.Pipeline)
-admin.site.register(models.Phase)
+
+class PhaseInline(admin.TabularInline):
+    """ 
+    Inline for phases
+    """
+    model = models.Phase
+
+class PipelineAdmin(admin.ModelAdmin):
+    """ 
+    Admin for pipelines.
+    """
+    model = models.Pipeline
+    inlines = [PhaseInline]
+
+admin.site.register(models.Pipeline, PipelineAdmin)
