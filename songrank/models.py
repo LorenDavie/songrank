@@ -208,18 +208,32 @@ class Pipeline(models.Model):
         value = super().save(*args, **kwargs)
         
         if not self.phases.all().exists():
-            subsequent_phase = None
-            # loop through phase descriptors backwards
-            for descriptor in self.template.phase_descriptors.all().order_by("-order"):
-                phase = Phase.objects.create(pipeline=self, descriptor=descriptor)
-                if subsequent_phase:
-                    phase.due = subsequent_phase.due - timedelta(days=subsequent_phase.descriptor.buffer_days)
-                else:
-                    phase.due = self.baseline
-                phase.save()
-                subsequent_phase = phase
+            self.schedule()
         
         return value
+    
+    def schedule(self):
+        """ 
+        Sets phase schedles accordingly.
+        """
+        self.phases.all().delete()
+        subsequent_phase = None
+        for descriptor in self.template.phase_descriptors.all().order_by("-order"):
+            phase = Phase.objects.create(pipeline=self, descriptor=descriptor)
+            if subsequent_phase:
+                phase.due = subsequent_phase.due - timedelta(days=subsequent_phase.descriptor.buffer_days)
+            else:
+                phase.due = self.baseline
+            phase.save()
+            subsequent_phase = phase
+    
+    def slip_to(self, new_date):
+        """ 
+        Moves the pipeline to a new release date, adjusting phase schedules accordingly.
+        """
+        self.baseline = new_date
+        self.save()
+        self.schedule()
     
     class Meta:
         unique_together = (("song", "name"),)

@@ -1,0 +1,22 @@
+<form action="/pipelines/{{ pipeline.pk }}/reschedule/" method="POST">
+    <p>
+        {{ form.new_due_date }}
+    </p>
+    <p>
+       <input type="submit" value="Reschedule" class="btn btn-outline-primary">
+       <a href="#" class="btn btn-outline-secondary" id="{{ pipeline.pk }}-cancel-btn">Cancel</a> 
+    </p>
+    {% csrf_token %}
+</form>
+<script>
+    $(function(){
+        $('#id_new_due_date').datepicker({
+            format: 'yyyy-mm-dd'
+        });
+        
+        $('#{{ pipeline.pk }}-cancel-btn').click(function(e){
+            $('#{{ pipeline.pk }}-reschedule-panel').fadeOut();
+            return false;
+        });
+    })
+</script>

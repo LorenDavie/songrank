@@ -3,6 +3,7 @@ Views for Songrank.
 """
 
 from songrank.models import Song, Pipeline
+from songrank.forms import ReschedulePipelineForm
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
@@ -66,3 +67,21 @@ def complete_phase(request, pipeline_id, phase_id):
         pipeline.save()
     
     return HttpResponseRedirect("/pipelines/")
+
+@login_required(login_url="/admin/login/")
+def reschedule_pipeline(request, pipeline_id):
+    """ 
+    Reschedules the specified pipeline.
+    """
+    pipeline = Pipeline.objects.get(pk=pipeline_id)
+    form = None
+    if request.method == 'POST':
+        form = ReschedulePipelineForm(request.POST)
+        if form.is_valid():
+            new_due_date = form.cleaned_data['new_due_date']
+            pipeline.slip_to(new_due_date)
+            return HttpResponseRedirect('/pipelines/')
+    else:
+        form = ReschedulePipelineForm()
+    
+    return render(request, "reschedule_pipeline_form.html", context={"form":form, "pipeline":pipeline})
