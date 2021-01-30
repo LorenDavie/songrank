@@ -48,7 +48,7 @@ def pipelines(request):
     """ 
     Shows release pipelines.
     """
-    pipelines = Pipeline.objects.filter(done=False)
+    pipelines = Pipeline.objects.filter(done=False).order_by("baseline")
     return render(request, "pipelines.html", context={"pipelines":pipelines})
 
 @login_required(login_url="/admin/login/")
