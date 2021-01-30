@@ -2,11 +2,12 @@
 Views for Songrank.
 """
 
-from songrank.models import Song, Pipeline
+from songrank.models import Song, Pipeline, Phase
 from songrank.forms import ReschedulePipelineForm
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
+from ics import Calendar, Event
 
 @login_required(login_url='/admin/login/')
 def home(request):
@@ -85,3 +86,20 @@ def reschedule_pipeline(request, pipeline_id):
         form = ReschedulePipelineForm()
     
     return render(request, "reschedule_pipeline_form.html", context={"form":form, "pipeline":pipeline})
+
+def pipeline_calendar(request):
+    """ 
+    Gets the calendar for the pipelines.
+    """
+    cal = Calendar()
+    for phase in Phase.objects.filter(pipeline__done=False):
+        event = Event()
+        event.name = f"{phase.pipeline}: {phase.descriptor.name}"
+        event.begin = phase.due
+        event.make_all_day()
+        cal.events.add(event)
+    
+    response = HttpResponse(cal, content_type="text/calendar")
+    return response
+
+        

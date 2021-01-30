@@ -24,5 +24,6 @@ urlpatterns = [
     path("pipelines/", views.pipelines),
     path("pipelines/<int:pipeline_id>/<int:phase_id>/done/", views.complete_phase),
     path("pipelines/<int:pipeline_id>/reschedule/", views.reschedule_pipeline),
+    path("pipelines/calendar.ics", views.pipeline_calendar),
     path('admin/', admin.site.urls),
 ]

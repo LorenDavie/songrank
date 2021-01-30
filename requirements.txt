@@ -1,3 +1,4 @@
+arrow==0.14.7
 asgiref==3.3.1
 boto3==1.16.43
 botocore==1.19.43
@@ -7,6 +8,7 @@ django-storages==1.11.1
 gevent==20.12.0
 greenlet==0.4.17
 gunicorn==20.0.4
+ics==0.7
 jmespath==0.10.0
 psycopg2==2.8.6
 python-dateutil==2.8.1
@@ -14,6 +16,7 @@ pytz==2020.4
 s3transfer==0.3.3
 six==1.15.0
 sqlparse==0.4.1
+TatSu==4.4.0
 urllib3==1.26.2
 zope.event==4.5.0
 zope.interface==5.2.0
