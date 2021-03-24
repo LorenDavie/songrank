@@ -18,7 +18,7 @@
                     {% for day in week %}
                     <td>
                         {% if day.date %}
-                            <h4>{{ day.date|date:"j" }}</h4>
+                            <h4 {% if day.is_today %}class="bg-primary text-white"{% endif %}>{{ day.date|date:"j" }}</h4>
                             {% for event in day.events %}
                             {% if event.done %}<span class="text-success">{% else %}{% if event.is_late %}<span class="text-danger">{% endif %}{% endif %}{{ event.pipeline }} : {{ event.descriptor }}{% if event.done %}</span>{% else %}{% if event.is_late %}</span>{% endif %}{% endif %}<br/>
                             {% endfor %}

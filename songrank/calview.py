@@ -105,6 +105,13 @@ class DayView(object):
         Gets phase events for this day.
         """
         return self.monthview.events_at(self.weekday, self.week)
+    
+    def is_today(self):
+        """ 
+        Returns true if the date associated with this day view is today.
+        """
+        today = date.today()
+        return today == self.date()
 
 
 def date_for_offset(month_offset=0):
