@@ -105,16 +105,22 @@ def pipeline_calendar(request):
     return response
 
 @login_required(login_url="/admin/login/")
-def calendar(request, month_offset=0):
+def calendar(request, month_offset=0, shift=None):
     """ 
     Shows a calendar view of the pipelines.
     """
+    offset = int(month_offset)
+    if shift == "next":
+        offset += 1
+    elif shift == "previous":
+        offset -= 1
+    
     cals = []
     for i in range(6):
-        ask_date = date_for_offset(month_offset+i)
+        ask_date = date_for_offset(offset+i)
         cal = MonthView(ask_date.year, ask_date.month)
         cals.append(cal)
     
-    return render(request, "calendar.html", context={"cals":cals})
+    return render(request, "calendar.html", context={"cals":cals, "offset":offset})
 
         

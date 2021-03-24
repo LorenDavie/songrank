@@ -3,6 +3,11 @@
 {% block content %}
 <hr/>
 <div class="container">
+    <div class="row">
+        <div class="col">
+            <p><a href="/calendar/{{ offset }}/previous/">&lt; Previous</a> | <a href="/calendar/{{ offset }}/next/">Next &gt;</a></p>
+        </div>
+    </div>
     {% for cal in cals %}
     <div class="row mt-5">
         <div class="col">
