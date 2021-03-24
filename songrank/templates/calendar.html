@@ -16,7 +16,7 @@
                 {% for week in cal %}
                 <tr>
                     {% for day in week %}
-                    <td>
+                    <td class="col-1">
                         {% if day.date %}
                             <h4 {% if day.is_today %}class="bg-primary text-white"{% endif %}>{{ day.date|date:"j" }}</h4>
                             {% for event in day.events %}
