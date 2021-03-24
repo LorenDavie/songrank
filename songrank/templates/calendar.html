@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<hr/>
+<div class="container">
+    {% for cal in cals %}
+    <div class="row mt-5">
+        <div class="col">
+            <h4>{{ cal.baseline|date:"F Y" }}</h4>
+            <table class="table">
+                <tr>
+                    {% for header in cal.days_of_week %}
+                    <th>{{ header }}</th>
+                    {% endfor %}
+                </tr>
+                {% for week in cal %}
+                <tr>
+                    {% for day in week %}
+                    <td>
+                        {% if day.date %}
+                            <h4>{{ day.date|date:"j" }}</h4>
+                            {% for event in day.events %}
+                            {% if event.done %}<span class="text-success">{% else %}{% if event.is_late %}<span class="text-danger">{% endif %}{% endif %}{{ event.pipeline }} : {{ event.descriptor }}{% if event.done %}</span>{% else %}{% if event.is_late %}</span>{% endif %}{% endif %}<br/>
+                            {% endfor %}
+                        {% endif %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock content %}
+

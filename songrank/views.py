@@ -4,10 +4,12 @@ Views for Songrank.
 
 from songrank.models import Song, Pipeline, Phase
 from songrank.forms import ReschedulePipelineForm
+from songrank.calview import MonthView, date_for_offset
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from ics import Calendar, Event
+from datetime import date
 
 @login_required(login_url='/admin/login/')
 def home(request):
@@ -101,5 +103,18 @@ def pipeline_calendar(request):
     
     response = HttpResponse(cal, content_type="text/calendar")
     return response
+
+@login_required(login_url="/admin/login/")
+def calendar(request, month_offset=0):
+    """ 
+    Shows a calendar view of the pipelines.
+    """
+    cals = []
+    for i in range(6):
+        ask_date = date_for_offset(month_offset+i)
+        cal = MonthView(ask_date.year, ask_date.month)
+        cals.append(cal)
+    
+    return render(request, "calendar.html", context={"cals":cals})
 
         
