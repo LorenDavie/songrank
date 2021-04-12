@@ -27,3 +27,6 @@ class PipelineAdmin(admin.ModelAdmin):
     inlines = [PhaseInline]
 
 admin.site.register(models.Pipeline, PipelineAdmin)
+admin.site.register(models.Chopper)
+admin.site.register(models.Rescue)
+admin.site.register(models.Chop)

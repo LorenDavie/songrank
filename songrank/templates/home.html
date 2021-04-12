@@ -67,6 +67,13 @@
                             {{ song.spread_percent }}%
                         </td>
                     </tr>
+                    {% if forloop.last %}
+                    <tr>
+                        <td colspan="6">
+                            <a href="/choppers/chopperize/{{ song.pk }}/" class="btn btn-outline-danger">Put {{ song }} on the Chopping Block</a>
+                        </td>
+                    </tr>
+                    {% endif %}
                     {% endfor %}
                 </table>
                 {% else %}

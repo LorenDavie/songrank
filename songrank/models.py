@@ -263,3 +263,124 @@ class Phase(models.Model):
         unique_together = (("pipeline", "descriptor"),)
         ordering = ["due"]
 
+
+class ChopperManager(models.Manager):
+    """ 
+    Manager for choppers.
+    """
+    def needs_rescue(self, member):
+        """ 
+        Returns the choppers eligible for rescue by the member.
+        """
+        return self.exclude(pk__in=[rescue.chopper.pk for rescue in member.rescues.all()]).exclude(pk__in=[chop.chopper.pk for chop in member.chops.all()])
+
+class Chopper(models.Model):
+    """ 
+    A chopper is a song facing being dropped.  Choppers are destined to
+    be either formally dropped by the band, or entered into the pipeline.
+    """
+    writers = models.ManyToManyField(Member, related_name="choppers")
+    name = models.CharField(unique=True, max_length=100)
+    demo = models.URLField(null=True, blank=True)
+    lyrics = models.TextField(blank=True)
+    
+    def evaluate_choppage(self):
+        """ 
+        If everyone has decided to chop the song, delete it.
+        """
+        if self.chops.all().count() >= Member.objects.count():
+            self.delete()
+    
+    def evaluate_rescues(self):
+        """ 
+        If half or more members want to rescue the song it becomes a
+        real song again.
+        """
+        threshold = Member.objects.count() / 2
+        if self.rescues.all().count() >= threshold:
+            song = Song.objects.create(
+                name=self.name,
+                demo=self.demo,
+                lyrics=self.lyrics
+            )
+            for writer in self.writers.all():
+                song.writers.add(writer)
+            song.save()
+            
+            # now we're a real song. get rid of the chopper
+            self.delete()
+    
+    objects = ChopperManager()
+    
+    def __str__(self):
+        return self.name
+
+class ChopperWrapper(object):
+    """ 
+    Wrapper for a chopper showing a user's POV
+    """
+    def __init__(self, chopper, member):
+        self.chopper = chopper
+        self.member = member
+    
+    def can_chop(self):
+        """ 
+        Returns true if the user hasn't already chopped the song.
+        """
+        return not Chop.objects.filter(member=self.member, chopper=self.chopper).exists()
+    
+    def can_rescue(self):
+        """ 
+        Returns true if the user hasn't rescued today or if they
+        haven't yet rescued this song.
+        """
+        if self.member.rescues.filter(date=date.today()).exists():
+            return False
+        
+        return not Rescue.objects.filter(member=self.member, chopper=self.chopper).exists()
+    
+    def __getattr__(self, attr):
+        return getattr(self.chopper, attr)
+
+
+class RescueManager(models.Manager):
+    """ 
+    Manager for rescues.
+    """
+    def can_rescue(self, member):
+        """ 
+        Determines if the member can rescue today.
+        """
+        return not member.rescues.filter(date=date.today()).exists()
+
+class Rescue(models.Model):
+    """ 
+    A rescue is a vote to rescue a chopper by a member.
+    """
+    chopper = models.ForeignKey(Chopper, related_name="rescues", on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, related_name="rescues", on_delete=models.CASCADE)
+    reason = models.TextField(blank=True)
+    date = models.DateField()
+    
+    objects = RescueManager()
+    
+    def __str__(self):
+        return f"{self.member} wants to rescue {self.chopper}"
+    
+    class Meta:
+        unique_together = (("member", "chopper"),)
+
+class Chop(models.Model):
+    """ 
+    A vote to chop a song.
+    """
+    chopper = models.ForeignKey(Chopper, related_name="chops", on_delete=models.CASCADE)
+    member = models.ForeignKey(Member, related_name="chops", on_delete=models.CASCADE)
+    date = models.DateField()
+    
+    def __str__(self):
+        return f"{self.member} wants to chop {self.chopper}"
+    
+    class Meta:
+        unique_together = (("member", "chopper"),)
+

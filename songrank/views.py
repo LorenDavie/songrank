@@ -2,7 +2,7 @@
 Views for Songrank.
 """
 
-from songrank.models import Song, Pipeline, Phase
+from songrank.models import Song, Pipeline, Phase, Chopper, Rescue, Chop, ChopperWrapper
 from songrank.forms import ReschedulePipelineForm
 from songrank.calview import MonthView, date_for_offset
 from django.shortcuts import render
@@ -122,5 +122,79 @@ def calendar(request, month_offset=0, shift=None):
         cals.append(cal)
     
     return render(request, "calendar.html", context={"cals":cals, "offset":offset})
+
+@login_required(login_url="/admin/login/")
+def choppers(request):
+    """ 
+    Shows the songs on the chopping block.
+    """
+    choppers = [ChopperWrapper(chopper, request.user) for chopper in Chopper.objects.all()]
+    return render(request, "choppers.html", context={"choppers":choppers})
+
+@login_required(login_url="/admin/login/")
+def chopper_lyrics(request, chopper_id):
+    """ 
+    Displays the lyrics of the specified chopper.
+    """
+    chopper = Chopper.objects.get(pk=chopper_id)
+    return render(request, "lyrics.html", context={"song":chopper})
+
+@login_required(login_url="/admin/login/")
+def rescue_chopper(request, chopper_id):
+    """ 
+    Rescues the chopper.
+    """
+    chopper = Chopper.objects.get(pk=chopper_id)
+    Rescue.objects.create(member=request.user, chopper=chopper, date=date.today())
+    
+    # if there is a matching chop then delete it
+    try:
+        Chop.objects.get(chopper=chopper, member=request.user).delete()
+    except Chop.DoesNotExist:
+        pass
+    
+    # should this become a real song again?
+    chopper.evaluate_rescues()
+    
+    return HttpResponseRedirect("/choppers/")
+
+@login_required(login_url="/admin/login/")
+def chop_chopper(request, chopper_id):
+    """ 
+    Chops the chopper.
+    """
+    chopper = Chopper.objects.get(pk=chopper_id)
+    Chop.objects.create(member=request.user, chopper=chopper, date=date.today())
+    
+    # if there is a matching rescue then delete it
+    try:
+        Rescue.objects.get(chopper=chopper, member=request.user).delete()
+    except Rescue.DoesNotExist:
+        pass
+    
+    # is it time for the chopper to go?
+    chopper.evaluate_choppage()
+    
+    return HttpResponseRedirect("/choppers/")
+
+@login_required(login_url="/admin/login/")
+def chopperize(request, song_id):
+    """ 
+    Chopperizes the song.
+    """
+    song = Song.objects.get(pk=song_id)
+    
+    chopper = Chopper.objects.create(
+        name=song.name,
+        demo=song.demo,
+        lyrics=song.lyrics
+    )
+    for writer in song.writers.all():
+        chopper.writers.add(writer)
+    chopper.save()
+    
+    song.delete()
+    
+    return HttpResponseRedirect("/choppers/")
 
         

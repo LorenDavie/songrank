@@ -27,5 +27,10 @@ urlpatterns = [
     path("pipelines/calendar.ics", views.pipeline_calendar),
     path("calendar/", views.calendar),
     path("calendar/<str:month_offset>/<str:shift>/", views.calendar),
+    path("choppers/", views.choppers),
+    path("choppers/<int:chopper_id>/lyrics/", views.chopper_lyrics),
+    path("choppers/<int:chopper_id>/rescue/", views.rescue_chopper),
+    path("choppers/<int:chopper_id>/chop/", views.chop_chopper),
+    path("choppers/chopperize/<int:song_id>/", views.chopperize),
     path('admin/', admin.site.urls),
 ]
