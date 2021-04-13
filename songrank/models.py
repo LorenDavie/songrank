@@ -9,7 +9,9 @@ from datetime import timedelta, date
 class Member(AbstractUser):
     """ 
     A member of the band.
-    """    
+    """
+    rankings_locked = models.BooleanField(default=False)
+        
     def ensure_rankings(self):
         """ 
         Makes sure there is a default ranking at least for every non-accepted song.
@@ -61,6 +63,16 @@ class SongManager(models.Manager):
         songs = [song for song in self.filter(accepted=False)]
         songs.sort(key=lambda song: song.average_rank(), reverse=True)
         return songs
+    
+    def has_song_chop(self, member):
+        """ 
+        Checks if the member has a song chop for the bottom ranked song.
+        """
+        if self.all().count() == 0:
+            return False # there are no songs, so by definition...
+        
+        last_song = self.average_rankings()[-1]
+        return SongChop.objects.filter(user=member, song=last_song).exists()
 
 class Song(models.Model):
     """ 
@@ -136,6 +148,22 @@ class Song(models.Model):
         """
         endorsement = self.endorsement() * 100.0
         return f"{endorsement:.0f}"
+    
+    def check_chopperize(self):
+        """ 
+        Checks if this song should be chopperized.
+        """
+        if self.chops.all().count() >= 2:
+            # past threshold, chop it
+            chopper = Chopper.objects.create(
+                name=self.name,
+                demo=self.demo,
+                lyrics=self.lyrics
+            )
+            for writer in self.writers.all():
+                chopper.writers.add(writer)
+            chopper.save()
+            self.delete()
 
 
 class Ranking(models.Model):
@@ -153,6 +181,20 @@ class Ranking(models.Model):
     class Meta:
         unique_together = (("member", "song"),)
         ordering = ["-ranking"]
+
+class SongChop(models.Model):
+    """ 
+    A vote to chop a song and turn it into a chopper.
+    """
+    song = models.ForeignKey(Song, related_name="chops", on_delete=models.CASCADE)
+    user = models.ForeignKey(Member, related_name="song_chops", on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"{self.user} wants to turn {self.song} into a chopper"
+    
+    class Meta:
+        unique_together = (("song", "user"),)
+
 
 # =============
 # = Pipelines =

@@ -2,7 +2,7 @@
 Views for Songrank.
 """
 
-from songrank.models import Song, Pipeline, Phase, Chopper, Rescue, Chop, ChopperWrapper
+from songrank.models import Song, Pipeline, Phase, Chopper, Rescue, Chop, ChopperWrapper, SongChop
 from songrank.forms import ReschedulePipelineForm
 from songrank.calview import MonthView, date_for_offset
 from django.shortcuts import render
@@ -18,7 +18,8 @@ def home(request):
     """
     request.user.ensure_rankings()
     aggregate = Song.objects.average_rankings()
-    return render(request, "home.html", context={'aggregate':aggregate})
+    has_chop = Song.objects.has_song_chop(request.user)
+    return render(request, "home.html", context={'aggregate':aggregate, 'has_chop':has_chop})
 
 @login_required(login_url='/admin/login/')
 def lyrics(request, song_id):
@@ -184,17 +185,27 @@ def chopperize(request, song_id):
     """
     song = Song.objects.get(pk=song_id)
     
-    chopper = Chopper.objects.create(
-        name=song.name,
-        demo=song.demo,
-        lyrics=song.lyrics
-    )
-    for writer in song.writers.all():
-        chopper.writers.add(writer)
-    chopper.save()
+    SongChop.objects.create(user=request.user, song=song)
+    song.check_chopperize()
     
-    song.delete()
-    
-    return HttpResponseRedirect("/choppers/")
+    return HttpResponseRedirect("/")
 
-        
+@login_required(login_url="/admin/login/")
+def unlock_rankings(request):
+    """ 
+    Unlocks rankings for user.
+    """
+    user = request.user
+    user.rankings_locked = False
+    user.save()
+    return HttpResponseRedirect("/")
+
+@login_required(login_url="/admin/login/")
+def lock_rankings(request):
+    """ 
+    Unlocks rankings for user.
+    """
+    user = request.user
+    user.rankings_locked = True
+    user.save()
+    return HttpResponseRedirect("/")
