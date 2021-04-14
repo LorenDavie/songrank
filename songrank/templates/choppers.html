@@ -49,12 +49,20 @@
                         <a href="/choppers/{{ chopper.pk }}/chop/" class="btn btn-outline-danger">Chop</a>
                         {% endif %}
                     </td>
-                    <td>
-                        {% for comment in chopper.comments.all %}
-                        <p><small>{{ comment.comment }} –{{ comment.commenter.initials }}</small></p>
-                        {% endfor %}
+                </tr>
+                {% if chopper.comments.all.exists %}
+                <tr>
+                    <td colspan="3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {% for comment in chopper.comments.all %}
+                                <p><small>{{ comment.comment }} –{{ comment.commenter.initials }}</small></p>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </td>
                 </tr>
+                {% endif %}
                 {% endfor %}
             </table>
             {% else %}

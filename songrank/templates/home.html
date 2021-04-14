@@ -53,7 +53,7 @@
                 <hr/>
                 <h5>Aggregate Rankings</h5>
                 {% if aggregate %}
-                <table class="table table-striped">
+                <table class="table">
                     <tr>
                         <th>Song</th>
                         <th>By</th>
@@ -61,7 +61,6 @@
                         <th>Rankings</th>
                         <th>Endorsement</th>
                         <th>Spread</th>
-                        <th>Comments</th>
                     </tr>
                     {% for song in aggregate %}
                     <tr {% if song.ranking_incomplete %}class="text-muted"{% endif %}>
@@ -92,12 +91,25 @@
                         <td>
                             {{ song.spread_percent }}%
                         </td>
-                        <td>
-                            {% for comment in song.comments.all %}
-                            <p><small>{{ comment.comment }} –{{ comment.member.initials }}</small></p>
-                            {% endfor %}
+                        {# <td> #}
+                        {#     {% for comment in song.comments.all %} #}
+                        {#     <p><small>{{ comment.comment }} –{{ comment.member.initials }}</small></p> #}
+                        {#     {% endfor %} #}
+                        {# </td> #}
+                    </tr>
+                    {% if song.comments.all.exists %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    {% for comment in song.comments.all %}
+                                    <p><small>{{ comment.comment }} –{{ comment.member.initials }}</small></p>
+                                    {% endfor %}
+                                </div>
+                            </div>
                         </td>
                     </tr>
+                    {% endif %}
                     {% if forloop.last and not has_chop %}
                     <tr>
                         <td colspan="6">
