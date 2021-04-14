@@ -348,6 +348,7 @@ class Chopper(models.Model):
     name = models.CharField(unique=True, max_length=100)
     demo = models.URLField(null=True, blank=True)
     lyrics = models.TextField(blank=True)
+    rescuers = models.ManyToManyField(Member, related_name="rescue_choppers")
     
     def evaluate_choppage(self):
         """ 
@@ -358,11 +359,10 @@ class Chopper(models.Model):
     
     def evaluate_rescues(self):
         """ 
-        If half or more members want to rescue the song it becomes a
+        If two or more members want to rescue the song it becomes a
         real song again.
         """
-        threshold = Member.objects.count() / 2
-        if self.rescues.all().count() >= threshold:
+        if self.rescuers.all().count() >= 2:
             song = Song.objects.create(
                 name=self.name,
                 demo=self.demo,
@@ -408,41 +408,17 @@ class ChopperWrapper(object):
         Returns true if the user hasn't rescued today or if they
         haven't yet rescued this song.
         """
-        if self.member.rescues.filter(date=date.today()).exists():
-            return False
-        
-        return not Rescue.objects.filter(member=self.member, chopper=self.chopper).exists()
+        return not self.member.rescue_choppers.all().exists()
+    
+    def is_rescue(self):
+        """ 
+        Returns true if this chopper is an intended rescue.
+        """
+        return self.chopper.rescuers.filter(pk=self.member.pk).exists()
     
     def __getattr__(self, attr):
         return getattr(self.chopper, attr)
 
-
-class RescueManager(models.Manager):
-    """ 
-    Manager for rescues.
-    """
-    def can_rescue(self, member):
-        """ 
-        Determines if the member can rescue today.
-        """
-        return not member.rescues.filter(date=date.today()).exists()
-
-class Rescue(models.Model):
-    """ 
-    A rescue is a vote to rescue a chopper by a member.
-    """
-    chopper = models.ForeignKey(Chopper, related_name="rescues", on_delete=models.CASCADE)
-    member = models.ForeignKey(Member, related_name="rescues", on_delete=models.CASCADE)
-    reason = models.TextField(blank=True)
-    date = models.DateField()
-    
-    objects = RescueManager()
-    
-    def __str__(self):
-        return f"{self.member} wants to rescue {self.chopper}"
-    
-    class Meta:
-        unique_together = (("member", "chopper"),)
 
 class Chop(models.Model):
     """ 

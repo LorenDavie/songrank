@@ -2,7 +2,7 @@
 Views for Songrank.
 """
 
-from songrank.models import Song, Pipeline, Phase, Chopper, Rescue, Chop, ChopperWrapper, SongChop
+from songrank.models import Song, Pipeline, Phase, Chopper, Chop, ChopperWrapper, SongChop
 from songrank.forms import ReschedulePipelineForm, CommentForm
 from songrank.calview import MonthView, date_for_offset
 from django.shortcuts import render
@@ -146,7 +146,8 @@ def rescue_chopper(request, chopper_id):
     Rescues the chopper.
     """
     chopper = Chopper.objects.get(pk=chopper_id)
-    Rescue.objects.create(member=request.user, chopper=chopper, date=date.today())
+    chopper.rescuers.add(request.user)
+    chopper.save()
     
     # if there is a matching chop then delete it
     try:
@@ -160,6 +161,17 @@ def rescue_chopper(request, chopper_id):
     return HttpResponseRedirect("/choppers/")
 
 @login_required(login_url="/admin/login/")
+def rescind_chopper_rescue(request, chopper_id):
+    """ 
+    Removes the rescue from the chopper.
+    """
+    chopper = Chopper.objects.get(pk=chopper_id)
+    chopper.rescuers.remove(request.user)
+    chopper.save()
+    
+    return HttpResponseRedirect("/choppers/")
+
+@login_required(login_url="/admin/login/")
 def chop_chopper(request, chopper_id):
     """ 
     Chops the chopper.
@@ -168,10 +180,8 @@ def chop_chopper(request, chopper_id):
     Chop.objects.create(member=request.user, chopper=chopper, date=date.today())
     
     # if there is a matching rescue then delete it
-    try:
-        Rescue.objects.get(chopper=chopper, member=request.user).delete()
-    except Rescue.DoesNotExist:
-        pass
+    chopper.rescuers.remove(request.user)
+    chopper.save()
     
     # is it time for the chopper to go?
     chopper.evaluate_choppage()

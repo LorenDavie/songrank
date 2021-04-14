@@ -28,7 +28,6 @@ class PipelineAdmin(admin.ModelAdmin):
 
 admin.site.register(models.Pipeline, PipelineAdmin)
 admin.site.register(models.Chopper)
-admin.site.register(models.Rescue)
 admin.site.register(models.Chop)
 admin.site.register(models.SongChop)
 admin.site.register(models.SongComment)

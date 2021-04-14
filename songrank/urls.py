@@ -30,6 +30,7 @@ urlpatterns = [
     path("choppers/", views.choppers),
     path("choppers/<int:chopper_id>/lyrics/", views.chopper_lyrics),
     path("choppers/<int:chopper_id>/rescue/", views.rescue_chopper),
+    path("choppers/<int:chopper_id>/rescind-rescue/", views.rescind_chopper_rescue),
     path("choppers/<int:chopper_id>/chop/", views.chop_chopper),
     path("choppers/chopperize/<int:song_id>/", views.chopperize),
     path("unlock-rankings/", views.unlock_rankings),
