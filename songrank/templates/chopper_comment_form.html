@@ -1,0 +1,20 @@
+<form action="/add-chopper-comment/{{ chopper.pk }}/" method="POST" class="mb-5" id="comment-form">
+    <h4>Comment on {{ chopper }}</h4>
+    <p>
+       {{ form.comment }} 
+    </p>
+    <p>
+        <input type="submit" value="Add Comment" class="btn btn-primary">
+        <a href="#" class="btn btn-secondary" id="cancel-comment-btn">Cancel</a>
+    </p>
+    {% csrf_token %}
+</form>
+
+<script>
+    $(function(){
+        $('#cancel-comment-btn').click(function(e){
+            $('#lyrics').fadeOut();
+            return false;
+        });
+    });
+</script>

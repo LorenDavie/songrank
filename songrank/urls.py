@@ -34,5 +34,7 @@ urlpatterns = [
     path("choppers/chopperize/<int:song_id>/", views.chopperize),
     path("unlock-rankings/", views.unlock_rankings),
     path("lock-rankings/", views.lock_rankings),
+    path("add-song-comment/<int:song_id>/", views.add_song_comment),
+    path("add-chopper-comment/<int:chopper_id>/", views.add_chopper_comment),
     path('admin/', admin.site.urls),
 ]

@@ -162,6 +162,15 @@ class Song(models.Model):
             )
             for writer in self.writers.all():
                 chopper.writers.add(writer)
+            
+            for comment in self.comments.all():
+                ChopperComment.objects.create(
+                    comment=comment.comment,
+                    commenter=comment.member,
+                    date=comment.date,
+                    chopper=chopper
+                )
+            
             chopper.save()
             self.delete()
 
@@ -195,6 +204,20 @@ class SongChop(models.Model):
     class Meta:
         unique_together = (("song", "user"),)
 
+class SongComment(models.Model):
+    """ 
+    A comment on a song.
+    """
+    comment = models.TextField(blank=True)
+    member = models.ForeignKey(Member, related_name="song_comments", on_delete=models.CASCADE)
+    date = models.DateField()
+    song = models.ForeignKey(Song, related_name="comments", on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f"{self.member} comment on {self.date} about {self.song}"
+    
+    class Meta:
+        ordering = ["date"]
 
 # =============
 # = Pipelines =
@@ -347,6 +370,15 @@ class Chopper(models.Model):
             )
             for writer in self.writers.all():
                 song.writers.add(writer)
+            
+            for comment in self.comments.all():
+                SongComment.objects.create(
+                    song=song,
+                    comment=comment.comment,
+                    member=comment.commenter,
+                    date=comment.date
+                )
+            
             song.save()
             
             # now we're a real song. get rid of the chopper
@@ -426,3 +458,17 @@ class Chop(models.Model):
     class Meta:
         unique_together = (("member", "chopper"),)
 
+class ChopperComment(models.Model):
+    """ 
+    A comment on a chopper.
+    """
+    chopper = models.ForeignKey(Chopper, related_name="comments", on_delete=models.CASCADE)
+    comment = models.TextField(blank=True)
+    commenter = models.ForeignKey(Member, related_name="chopper_comments", on_delete=models.CASCADE)
+    date = models.DateField()
+    
+    def __str__(self):
+        return f"{self.commenter} comment on {self.date} about {self.chopper}"
+    
+    class Meta:
+        ordering = ["date"]

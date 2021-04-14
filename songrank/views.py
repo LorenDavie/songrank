@@ -3,7 +3,7 @@ Views for Songrank.
 """
 
 from songrank.models import Song, Pipeline, Phase, Chopper, Rescue, Chop, ChopperWrapper, SongChop
-from songrank.forms import ReschedulePipelineForm
+from songrank.forms import ReschedulePipelineForm, CommentForm
 from songrank.calview import MonthView, date_for_offset
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
@@ -209,3 +209,38 @@ def lock_rankings(request):
     user.rankings_locked = True
     user.save()
     return HttpResponseRedirect("/")
+
+@login_required(login_url="/admin/login/")
+def add_song_comment(request, song_id):
+    """ 
+    Adds a comment to a song.
+    """
+    song = Song.objects.get(pk=song_id)
+    form = None
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            form.add_song_comment(song, request.user)
+            return HttpResponseRedirect("/")
+    else:
+        form = CommentForm()
+    
+    return render(request, "song_comment_form.html", context={"form":form, "song":song})
+
+@login_required(login_url="/admin/login/")
+def add_chopper_comment(request, chopper_id):
+    """ 
+    Adds a comment to a chopper.
+    """
+    chopper = Chopper.objects.get(pk=chopper_id)
+    form = None
+    if request.method == "POST":
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            form.add_chopper_comment(chopper, request.user)
+            return HttpResponseRedirect("/choppers/")
+    else:
+        form = CommentForm()
+    
+    return render(request, "chopper_comment_form.html", context={"form":form, "chopper":chopper})
+
